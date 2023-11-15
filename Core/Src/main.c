@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -87,7 +88,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+
 
 
   // Lcd_PortType ports[] = { D4_GPIO_Port, D5_GPIO_Port, D6_GPIO_Port, D7_GPIO_Port };
@@ -99,11 +102,41 @@ int main(void)
 	lcd = Lcd_create(ports, pins, GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, LCD_4_BIT_MODE);
 	Lcd_cursor(&lcd, 0,1);
 	Lcd_string(&lcd, "Peter Zhang");
+
+
+	// ----------------------------------- values
+
+  int value = 0;
+
+  // turn on pwm
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+
+  // don't let value = 255 (otherwise is 100% of the duty cycle + we just get 0, 1 // high or low
+
+  // ----------------------------------- values
+
+  // speaker stuff
+	while(value < 255){
+		htim2.Instance->CCR1 = value;
+		value += 20; // increase duty cycle
+		Lcd_cursor(&lcd, 1, 7);
+		Lcd_int(&lcd, value);
+		HAL_Delay(500); // pause for 500 ms
+
+	}
+
+
+	// ----------------------------------- values
+	// loop for number counting
+
 	for ( int x = 1; x <= 200 ; x++ )
 	{
 		Lcd_cursor(&lcd, 1,7);
 		Lcd_int(&lcd, x);
 		HAL_Delay (1000);
+
+
+
 	}
 
 
@@ -142,8 +175,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 90;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
   RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -160,7 +193,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
