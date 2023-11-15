@@ -67,8 +67,6 @@ void Error_Handler(void);
 #define GPIO_Out___lcd_GPIO_Port GPIOA
 #define GPIO_Output___lcd_Pin GPIO_PIN_7
 #define GPIO_Output___lcd_GPIO_Port GPIOC
-#define Lightbulb_Output_Pin GPIO_PIN_9
-#define Lightbulb_Output_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
