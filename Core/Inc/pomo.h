@@ -12,7 +12,9 @@
 #define uint unsigned int
 #endif
 
-#include "string.h"
+#include "stdbool.h"
+
+
 
 // constnats for months
 const uint
@@ -75,6 +77,8 @@ const uint CLOCK_SIZE = 6;
 void second_update_clock(int*);
 void display_info_s(Lcd_HandleTypeDef*, uint, char*, uint, uint, char*, uint);
 void display_info_i(Lcd_HandleTypeDef*, uint, int, uint, int);
+void display_clock(Lcd_HandleTypeDef*, int*);
+bool ta_passed_tb(int*, int*);
 int get_display_pos(uint, uint);
 int get_int_length(int);
 
@@ -146,6 +150,56 @@ void display_info_i(Lcd_HandleTypeDef* lcd, uint align1, int data1, uint align2,
 	// end
 }
 
+void display_clock(Lcd_HandleTypeDef* lcd, int* clock){
+	// display everything + map
+
+	// 1st row - date + time
+	// lcd = 16
+	// "MMM DD  " = 8
+	// "   HH:MM" = 8
+
+	// 2nd row - next alarm
+	// "Alarm HH:MM" = 11
+	//
+
+
+
+	// --- output first row
+	// output month
+	Lcd_cursor(lcd, 0, 0);
+	Lcd_string(lcd, M_STRING[clock[MON]]);
+	// output day
+	Lcd_cursor(lcd, 0, 4);
+	Lcd_int(lcd, clock[DAY]);
+
+	// find align right position
+	int aleft = get_display_pos(A_RIGHT, 5);
+
+	// output hours
+	Lcd_cursor(lcd, 0, aleft);
+	Lcd_int(lcd, clock[HRR]);
+	// output center thing
+	Lcd_cursor(lcd, 0, aleft + 2);
+	Lcd_string(lcd, ":");
+	// output minutes
+	Lcd_cursor(lcd, 0, aleft + 3);
+	Lcd_int(lcd, clock[MIN]);
+
+	// --- output the second row
+	// TODO - alarm stuff
+
+
+}
+
+bool ta_passed_tb(int* a, int* b){
+	if (a[YRR] > b[YRR]) return true;
+	if (a[MON] > b[MON]) return true;
+	if (a[DAY] > b[DAY]) return true;
+	if (a[HRR] > b[HRR]) return true;
+	if (a[MIN] > b[MIN]) return true;
+	if (a[SEC] > b[SEC]) return true;
+	return false;
+}
 
 int get_display_pos(uint align, uint length){
 	if (align == A_LEFT){

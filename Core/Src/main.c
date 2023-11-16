@@ -133,8 +133,10 @@ int main(void)
 //	}
 
 
-	// create clock objct
-	int clock[6] = {0, 0, 0, 0, 0 , 0};
+	// create clock object
+  	  // sec, min, hrr, day, mon, year
+  	// int clock[6] = {0, 0, 0, 0, 0, 0};
+	int clock[6] = {0, 19, 15, 16, NOV, 2023};
 	C_START_TIME = HAL_GetTick();
   /* USER CODE END 2 */
 
@@ -155,7 +157,8 @@ int main(void)
 	// calcualte time
 	second_update_clock(clock);
 //	display_info_i(&lcd, A_CENTER, HAL_GetTick(), A_CENTER, clock[0]);
-	display_info_s(&lcd, A_CENTER, "PETER ZHANG", 11, A_LEFT, "ciao", 4);
+//	display_info_s(&lcd, A_CENTER, "PETER ZHANG", 11, A_LEFT, "ciao", 4);
+	display_clock(&lcd, clock);
 
 //	  // timer code counter
 //	Lcd_cursor(&lcd, 1,7);
