@@ -26,6 +26,7 @@
 
 
 #include "lcd.h"
+#include "pomo.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,8 +101,8 @@ int main(void)
 	Lcd_HandleTypeDef lcd;
 	// Lcd_create(ports, pins, RS_GPIO_Port, RS_Pin, EN_GPIO_Port, EN_Pin, LCD_4_BIT_MODE);
 	lcd = Lcd_create(ports, pins, GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, LCD_4_BIT_MODE);
-	Lcd_cursor(&lcd, 0,1);
-	Lcd_string(&lcd, "Peter Zhang");
+//	Lcd_cursor(&lcd, 0,1);
+//	Lcd_string(&lcd, "Peter Zhang");
 
 
 	// ----------------------------------- values
@@ -115,6 +116,9 @@ int main(void)
 
   // ----------------------------------- values
 
+
+//  	 value = 500;
+//  	 htim2.Instance->CCR1 = value;
   // speaker stuff
 	while(value < 255){
 		htim2.Instance->CCR1 = value;
@@ -122,24 +126,12 @@ int main(void)
 		Lcd_cursor(&lcd, 1, 7);
 		Lcd_int(&lcd, value);
 		HAL_Delay(500); // pause for 500 ms
-
 	}
 
 
-	// ----------------------------------- values
-	// loop for number counting
-
-	for ( int x = 1; x <= 200 ; x++ )
-	{
-		Lcd_cursor(&lcd, 1,7);
-		Lcd_int(&lcd, x);
-		HAL_Delay (1000);
-
-
-
-	}
-
-
+	// create clock objct
+	int clock[6] = {0, 0, 0, 0, 0 , 0};
+	C_START_TIME = HAL_GetTick();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -149,6 +141,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	PREV_TIME = CURRENT_TIME;
+	CURRENT_TIME = HAL_GetTick();
+	DELTA_TIME += CURRENT_TIME - PREV_TIME;
+
+
+	second_update_clock(clock);
+
+	  // timer code counter
+	Lcd_cursor(&lcd, 1,7);
+	Lcd_int(&lcd, HAL_GetTick());
+	Lcd_cursor(&lcd, 0, 7);
+	Lcd_int(&lcd, clock[0]);
+
+
   }
   /* USER CODE END 3 */
 }
@@ -176,8 +182,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 90;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLN = 80;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -191,9 +197,9 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV16;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }

@@ -1,3 +1,4 @@
-../Core/Src/main.c:67:5:main	3
-../Core/Src/main.c:160:6:SystemClock_Config	3
-../Core/Src/main.c:210:6:Error_Handler	1
+../Core/Inc/pomo.h:27:6:second_update_clock	10
+../Core/Src/main.c:68:5:main	2
+../Core/Src/main.c:166:6:SystemClock_Config	3
+../Core/Src/main.c:216:6:Error_Handler	1
