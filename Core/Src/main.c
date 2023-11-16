@@ -27,6 +27,8 @@
 
 #include "lcd.h"
 #include "pomo.h"
+#include "speaker.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,13 +105,11 @@ int main(void)
 	Lcd_HandleTypeDef lcd;
 	// Lcd_create(ports, pins, RS_GPIO_Port, RS_Pin, EN_GPIO_Port, EN_Pin, LCD_4_BIT_MODE);
 	lcd = Lcd_create(ports, pins, GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, LCD_4_BIT_MODE);
-//	Lcd_cursor(&lcd, 0,1);
-//	Lcd_string(&lcd, "Peter Zhang");
+	Lcd_cursor(&lcd, 0,1);
+	Lcd_string(&lcd, "Peter Zhang");
 
 
 	// ----------------------------------- values
-
-  int value = 0;
 
   // turn on pwm
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
@@ -119,25 +119,24 @@ int main(void)
   // ----------------------------------- values
 
 
-//  	 value = 500;
-//  	 htim2.Instance->CCR1 = value;
-  // speaker stuff
-  	  value = 500;
-  	  htim2.Instance->CCR1 = value;
-//	while(value < 255){
-//		htim2.Instance->CCR1 = value;
-//		value += 20; // increase duty cycle
-//		Lcd_cursor(&lcd, 1, 7);
-//		Lcd_int(&lcd, value);
-//		HAL_Delay(500); // pause for 500 ms
-//	}
-
+  	set_speaker_state(false);
 
 	// create clock object
   	  // sec, min, hrr, day, mon, year
   	// int clock[6] = {0, 0, 0, 0, 0, 0};
 	int clock[6] = {0, 19, 15, 16, NOV, 2023};
+
+	set_clock_time_arr(clock);
 	C_START_TIME = HAL_GetTick();
+
+
+	Lcd_clear(&lcd);
+
+
+	//TODO - SPEAKER TESTING
+	set_alarm(0, 0, 0);
+	set_speaker_state(true);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -151,14 +150,20 @@ int main(void)
 	CURRENT_TIME = HAL_GetTick();
 	DELTA_TIME += CURRENT_TIME - PREV_TIME;
 
-	// print out date
+	// if alarm on, countdown from 15s
+	// TODO TESTING --
+//	update_alarm();
+
+//	update_speaker_limit();
+
+	// TODO - something is going wrong here :(((
+	update_speaker_limit();
+	ALARM[MIN] = SPEAKER_ACTIVE_TIMER[SEC];
+	ALARM[HRR] = (int) SPEAKER_ACTIVE;
 
 
-	// calcualte time
-	second_update_clock(clock);
-//	display_info_i(&lcd, A_CENTER, HAL_GetTick(), A_CENTER, clock[0]);
-//	display_info_s(&lcd, A_CENTER, "PETER ZHANG", 11, A_LEFT, "ciao", 4);
-	display_clock(&lcd, clock);
+	second_update_clock(CLOCK);
+	display_default(&lcd);
 
 //	  // timer code counter
 //	Lcd_cursor(&lcd, 1,7);

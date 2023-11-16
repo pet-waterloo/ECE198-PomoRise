@@ -5,6 +5,8 @@
  *      Author: petthepotat
  */
 
+#pragma once
+
 #ifndef INC_POMO_H_
 #define INC_POMO_H_
 
@@ -12,77 +14,45 @@
 #define uint unsigned int
 #endif
 
+#include "const.h"
 #include "stdbool.h"
-
-
-
-// constnats for months
-const uint
-	JAN = 0,
-	FEB = 1,
-	MAR = 2,
-	APR = 3,
-	MAY = 4,
-	JUN = 5,
-	JUL = 6,
-	AUG = 7,
-	SEP = 8,
-	OCT = 9,
-	NOV = 10,
-	DEC = 11;
-
-// constants for clock
-const uint
-	SEC = 0,
-	MIN = 1,
-	HRR = 2,
-	DAY = 3,
-	MON = 4,
-	YRR = 5;
-
-uint D_MONTHS[] = {
-		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
-
-const char *M_STRING[] = {
-	"JAN",
-	"FEB",
-	"MAR",
-	"APR",
-	"MAY",
-	"JUN",
-	"JUL",
-	"AUG",
-	"SEP",
-	"OCT",
-	"NOV",
-	"DEC"
-};
-
-const uint
-	A_LEFT = 0,
-	A_CENTER = 1,
-	A_RIGHT = 2;
-
-
-uint C_START_TIME = 0;
-uint CURRENT_TIME = 0;
-uint PREV_TIME = 0;
-uint DELTA_TIME = 0;
-
-
-const uint CLOCK_SIZE = 6;
+#include "timer.h"
 
 // -----
+void set_clock_time_arr(int*);
+void set_clock_time(int, int, int, int, int, int);
 void second_update_clock(int*);
 void display_info_s(Lcd_HandleTypeDef*, uint, char*, uint, uint, char*, uint);
 void display_info_i(Lcd_HandleTypeDef*, uint, int, uint, int);
 void display_clock(Lcd_HandleTypeDef*, int*);
-bool ta_passed_tb(int*, int*);
+void display_pomo(Lcd_HandleTypeDef*, int*);
+int t1_passed_t2(int*, int*);
 int get_display_pos(uint, uint);
 int get_int_length(int);
+void delete_clock(int*);
 
 // -----
+void delete_clock(int* clock){
+	for (int i = 0; i < CLOCK_SIZE; i++){
+		ALARM[i] = 0;
+	}
+}
+
+void set_clock_time_arr(int* time){
+	for(int i = 0; i < CLOCK_SIZE; i++){
+		CLOCK[i] = time[i];
+	}
+}
+
+void set_clock_time(int ss, int mm, int hh, int DD, int MM, int YY){
+	CLOCK[SEC] = ss;
+	CLOCK[MIN] = mm;
+	CLOCK[HRR] = hh;
+	CLOCK[DAY] = DD;
+	CLOCK[MON] = MM;
+	CLOCK[YRR] = YY;
+}
+
 void second_update_clock(int* clock){
 	// if ms > 1000ms  / 1 s
 	if(DELTA_TIME < 1000) return;
@@ -150,13 +120,13 @@ void display_info_i(Lcd_HandleTypeDef* lcd, uint align1, int data1, uint align2,
 	// end
 }
 
-void display_clock(Lcd_HandleTypeDef* lcd, int* clock){
+void display_default(Lcd_HandleTypeDef* lcd){
 	// display everything + map
 
 	// 1st row - date + time
 	// lcd = 16
 	// "MMM DD  " = 8
-	// "   HH:MM" = 8
+	// "HH:MM:SS" = 8
 
 	// 2nd row - next alarm
 	// "Alarm HH:MM" = 11
@@ -167,31 +137,91 @@ void display_clock(Lcd_HandleTypeDef* lcd, int* clock){
 	// --- output first row
 	// output month
 	Lcd_cursor(lcd, 0, 0);
-	Lcd_string(lcd, M_STRING[clock[MON]]);
+	Lcd_string(lcd, M_STRING[CLOCK[MON]]);
 	// output day
 	Lcd_cursor(lcd, 0, 4);
-	Lcd_int(lcd, clock[DAY]);
+	Lcd_int(lcd, CLOCK[DAY]);
 
 	// find align right position
-	int aleft = get_display_pos(A_RIGHT, 5);
+	int aleft = get_display_pos(A_RIGHT, 7);
 
 	// output hours
 	Lcd_cursor(lcd, 0, aleft);
-	Lcd_int(lcd, clock[HRR]);
+	Lcd_int(lcd, CLOCK[HRR]);
 	// output center thing
 	Lcd_cursor(lcd, 0, aleft + 2);
 	Lcd_string(lcd, ":");
 	// output minutes
 	Lcd_cursor(lcd, 0, aleft + 3);
-	Lcd_int(lcd, clock[MIN]);
+	Lcd_int(lcd, CLOCK[MIN]);
+	// output center thing
+	Lcd_cursor(lcd, 0, aleft + 5);
+	Lcd_string(lcd, ":");
+	// output seconds
+	if(CLOCK[SEC] < 10){
+		Lcd_cursor(lcd, 0, aleft + 6);
+		Lcd_int(lcd, 0);
+		Lcd_cursor(lcd, 0, aleft + 7);
+		Lcd_int(lcd, CLOCK[SEC]);
+	}else{
+		Lcd_cursor(lcd, 0, aleft + 6);
+		Lcd_int(lcd, CLOCK[SEC]);
+	}
 
 	// --- output the second row
 	// TODO - alarm stuff
+	// intro string
+	Lcd_cursor(lcd, 1, 0);
+	Lcd_string(lcd, "ALARM ");
 
+	if(HAS_TIMER){
+		// print out hours
+		aleft = get_display_pos(A_RIGHT, 4);
+		if(ALARM[HRR] < 10){
+			Lcd_cursor(lcd, 1, aleft);
+			Lcd_int(lcd, 0);
+			Lcd_cursor(lcd, 1, aleft + 1);
+			Lcd_int(lcd, ALARM[HRR]);
+		}else{
+			Lcd_cursor(lcd, 1, aleft);
+			Lcd_int(lcd, ALARM[HRR]);
+		}
+		Lcd_cursor(lcd, 1, aleft+2);
+		Lcd_string(lcd, ":");
+
+
+		if(ALARM[MIN] < 10){
+			Lcd_cursor(lcd, 1, aleft + 3);
+			Lcd_int(lcd, 0);
+			Lcd_cursor(lcd, 1, aleft + 4);
+			Lcd_int(lcd, ALARM[MIN]);
+		}else{
+			Lcd_cursor(lcd, 1, aleft + 3);
+			Lcd_int(lcd, ALARM[MIN]);
+		}
+//		if(ALARM[SEC] < 10){
+//			Lcd_cursor(lcd, 1, aleft + 3);
+//			Lcd_int(lcd, 0);
+//			Lcd_cursor(lcd, 1, aleft + 4);
+//			Lcd_int(lcd, ALARM[SEC]);
+//		}else{
+//			Lcd_cursor(lcd, 1, aleft + 3);
+//			Lcd_int(lcd, ALARM[SEC]);
+//		}
+	}else{
+		aleft = get_display_pos(A_RIGHT, 6);
+		Lcd_cursor(lcd, 1, aleft);
+		Lcd_string(lcd, "NOT SET");
+	}
+}
+
+void display_pomo(Lcd_HandleTypeDef* lcd, int* pc){
 
 }
 
-bool ta_passed_tb(int* a, int* b){
+
+
+int t1_passed_t2(int* a, int* b){
 	if (a[YRR] > b[YRR]) return true;
 	if (a[MON] > b[MON]) return true;
 	if (a[DAY] > b[DAY]) return true;
