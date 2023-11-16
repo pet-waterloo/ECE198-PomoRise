@@ -47,7 +47,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#ifndef uint
+#define uint unsigned int
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -120,13 +122,15 @@ int main(void)
 //  	 value = 500;
 //  	 htim2.Instance->CCR1 = value;
   // speaker stuff
-	while(value < 255){
-		htim2.Instance->CCR1 = value;
-		value += 20; // increase duty cycle
-		Lcd_cursor(&lcd, 1, 7);
-		Lcd_int(&lcd, value);
-		HAL_Delay(500); // pause for 500 ms
-	}
+  	  value = 500;
+  	  htim2.Instance->CCR1 = value;
+//	while(value < 255){
+//		htim2.Instance->CCR1 = value;
+//		value += 20; // increase duty cycle
+//		Lcd_cursor(&lcd, 1, 7);
+//		Lcd_int(&lcd, value);
+//		HAL_Delay(500); // pause for 500 ms
+//	}
 
 
 	// create clock objct
@@ -145,14 +149,19 @@ int main(void)
 	CURRENT_TIME = HAL_GetTick();
 	DELTA_TIME += CURRENT_TIME - PREV_TIME;
 
+	// print out date
 
+
+	// calcualte time
 	second_update_clock(clock);
+//	display_info_i(&lcd, A_CENTER, HAL_GetTick(), A_CENTER, clock[0]);
+	display_info_s(&lcd, A_CENTER, "PETER ZHANG", 11, A_LEFT, "ciao", 4);
 
-	  // timer code counter
-	Lcd_cursor(&lcd, 1,7);
-	Lcd_int(&lcd, HAL_GetTick());
-	Lcd_cursor(&lcd, 0, 7);
-	Lcd_int(&lcd, clock[0]);
+//	  // timer code counter
+//	Lcd_cursor(&lcd, 1,7);
+//	Lcd_int(&lcd, HAL_GetTick());
+//	Lcd_cursor(&lcd, 0, 7);
+//	Lcd_int(&lcd, clock[0]);
 
 
   }
