@@ -76,7 +76,7 @@ main-build: 198.elf secondary-outputs
 
 # Tool invocations
 198.elf 198.map: $(OBJS) $(USER_OBJS) /Users/petthepotat/STM32CubeIDE/workspace_1.13.2/198/STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "198.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/petthepotat/STM32CubeIDE/workspace_1.13.2/198/STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="198.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+	arm-none-eabi-g++ -o "198.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/petthepotat/STM32CubeIDE/workspace_1.13.2/198/STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="198.map" -Wl,--gc-sections -static -u_printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

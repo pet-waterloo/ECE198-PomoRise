@@ -17,7 +17,11 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <accel.hpp>
+#include <lcdwrap.h>
+#include <Time.hpp>
 #include "main.h"
+#include "i2c.h"
 #include "tim.h"
 #include "gpio.h"
 
@@ -25,10 +29,13 @@
 /* USER CODE BEGIN Includes */
 
 
-#include "lcd.h"
-#include "pomo.h"
-#include "speaker.h"
+
+#include <string>
 #include "stdbool.h"
+#include "lcd.h"
+
+#include "speaker.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,6 +45,27 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define MPU6050_ADDR 0xD0
+#define SMPLRT_DIV_REG 0x19
+#define GYRO_CONFIG_REG 0x1B
+#define ACCEL_CONFIG_REG 0x1C
+#define ACCEL_XOUT_H_REG 0x3B
+#define TEMP_OUT_H_REG 0x41
+#define GYRO_XOUT_H_REG 0x43
+#define PWR_MGMT_1_REG 0x6B
+#define WHO_AM_I_REG 0X75
+#define DEVICE_ADDRESS 0x68
+
+
+#define REG_CONFIG_GYRO 27
+#define REG_CONFIG_ACC 28
+#define REG_DATA 59
+
+#define RS_GYRO_250 0
+#define RS_GYRO_500 8
+#define RS_ACC_2G 0
+#define RS_ACC_4G 8
 
 /* USER CODE END PD */
 
@@ -62,6 +90,10 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
+Time GLOBAL_CLOCK(0, 0, 0, 0, 0, 0);
+
 
 /* USER CODE END 0 */
 
@@ -94,48 +126,59 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+	// ----------------------------------- pins for lcd
 
-
-  // Lcd_PortType ports[] = { D4_GPIO_Port, D5_GPIO_Port, D6_GPIO_Port, D7_GPIO_Port };
+	// Lcd_PortType ports[] = { D4_GPIO_Port, D5_GPIO_Port, D6_GPIO_Port, D7_GPIO_Port };
 	Lcd_PortType ports[] = { GPIOC, GPIOB, GPIOA, GPIOA };
 	// Lcd_PinType pins[] = {D4_Pin, D5_Pin, D6_Pin, D7_Pin};
 	Lcd_PinType pins[] = {GPIO_PIN_7, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_6};
 	Lcd_HandleTypeDef lcd;
 	// Lcd_create(ports, pins, RS_GPIO_Port, RS_Pin, EN_GPIO_Port, EN_Pin, LCD_4_BIT_MODE);
 	lcd = Lcd_create(ports, pins, GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, LCD_4_BIT_MODE);
-	Lcd_cursor(&lcd, 0,1);
-	Lcd_string(&lcd, "Peter Zhang");
+	// create lcd wrapper
+	LCD lcdw(&lcd);
+
+	// ----------------------------------- pwm for speaker
+	// turn on pwm
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
 
-	// ----------------------------------- values
+	// don't let value = 255 (otherwise is 100% of the duty cycle + we just get 0, 1 // high or low
 
-  // turn on pwm
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-
-  // don't let value = 255 (otherwise is 100% of the duty cycle + we just get 0, 1 // high or low
-
-  // ----------------------------------- values
-
-
-  	set_speaker_state(false);
+	// ----------------------------------- speaker + clock
+	Speaker speaker(htim2);
 
 	// create clock object
   	  // sec, min, hrr, day, mon, year
   	// int clock[6] = {0, 0, 0, 0, 0, 0};
-	int clock[6] = {0, 19, 15, 16, NOV, 2023};
+//	int clock[6] = {0, 19, 15, 16, NOV, 2023};
+	GLOBAL_CLOCK.set_time(0, 19, 15, 16, NOV, 2023);
 
-	set_clock_time_arr(clock);
-	C_START_TIME = HAL_GetTick();
-
-
-	Lcd_clear(&lcd);
 
 
 	//TODO - SPEAKER TESTING
-	set_alarm(0, 0, 0);
-	set_speaker_state(true);
+//	set_alarm(0, 0, 0);
+//	set_speaker_state(true);
+
+
+	// ------------------------------------ accelerometer
+	init_accel(&hi2c1);
+//	uint8_t check, data;
+//	HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, 100);
+//	if(check == 0x68){
+//		set_speaker_state(true);
+//		HAL_Delay(100);
+//		set_speaker_state(false);
+//
+//		// turn on speaker
+//
+//		data = 0;
+//		HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, PWR_MGMT_1_REG, 1, &data, 1, 100);
+//	}
+
 
   /* USER CODE END 2 */
 
@@ -146,30 +189,44 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	PREV_TIME = CURRENT_TIME;
-	CURRENT_TIME = HAL_GetTick();
-	DELTA_TIME += CURRENT_TIME - PREV_TIME;
 
-	// if alarm on, countdown from 15s
-	// TODO TESTING --
-//	update_alarm();
+	// --- time
 
-//	update_speaker_limit();
 
+	// --- speaker
 	// TODO - something is going wrong here :(((
-	update_speaker_limit();
-	ALARM[MIN] = SPEAKER_ACTIVE_TIMER[SEC];
-	ALARM[HRR] = (int) SPEAKER_ACTIVE;
+//	update_speaker_limit();
+//	ALARM[MIN] = SPEAKER_ACTIVE_TIMER[SEC];
+//	ALARM[HRR] = (int) SPEAKER_ACTIVE;
+//
+
+	// --- clock
+	clock.update_time();
 
 
-	second_update_clock(CLOCK);
-	display_default(&lcd);
+//	display_default(&lcd);
 
 //	  // timer code counter
 //	Lcd_cursor(&lcd, 1,7);
 //	Lcd_int(&lcd, HAL_GetTick());
 //	Lcd_cursor(&lcd, 0, 7);
 //	Lcd_int(&lcd, clock[0]);
+
+
+	// --- accelerometer
+	read_accel(&hi2c1);
+//
+//	if(!ACCEL_ACTIVATED){
+////		Lcd_clear(&lcd);
+//		Lcd_cursor(&lcd, 0, 1);
+//		Lcd_string(&lcd, "cringe cringe");
+//	}else{
+		// output acc values onto lcd
+	Lcd_cursor(&lcd, 0, 1);
+	char buf[16];
+	sprintf(buf, "%d", (int)(AX*100));
+	Lcd_string(&lcd, buf);
+//	}
 
 
   }

@@ -10,49 +10,6 @@
 
 
 
-// constnats for months
-const uint
-	JAN = 0,
-	FEB = 1,
-	MAR = 2,
-	APR = 3,
-	MAY = 4,
-	JUN = 5,
-	JUL = 6,
-	AUG = 7,
-	SEP = 8,
-	OCT = 9,
-	NOV = 10,
-	DEC = 11;
-
-// constants for clock
-const uint
-	SEC = 0,
-	MIN = 1,
-	HRR = 2,
-	DAY = 3,
-	MON = 4,
-	YRR = 5;
-
-uint D_MONTHS[] = {
-		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
-
-const char *M_STRING[] = {
-	"JAN",
-	"FEB",
-	"MAR",
-	"APR",
-	"MAY",
-	"JUN",
-	"JUL",
-	"AUG",
-	"SEP",
-	"OCT",
-	"NOV",
-	"DEC"
-};
-
 const uint
 	A_LEFT = 0,
 	A_CENTER = 1,

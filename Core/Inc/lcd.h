@@ -94,4 +94,11 @@ Lcd_HandleTypeDef Lcd_create(
 void Lcd_define_char(Lcd_HandleTypeDef * lcd, uint8_t code, uint8_t bitmap[]);
 void Lcd_clear(Lcd_HandleTypeDef * lcd);
 
+
+static void lcd_write_data(Lcd_HandleTypeDef * lcd, uint8_t data);
+static void lcd_write_command(Lcd_HandleTypeDef * lcd, uint8_t command);
+static void lcd_write(Lcd_HandleTypeDef * lcd, uint8_t data, uint8_t len);
+
+
+
 #endif /* LCD_H_ */

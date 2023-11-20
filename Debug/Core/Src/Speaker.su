@@ -1,0 +1,7 @@
+../Core/Src/Speaker.cpp:10:1:Speaker::Speaker(TIM_HandleTypeDef)	16	static
+../Core/Src/Speaker.cpp:17:1:Speaker::~Speaker()	16	static
+../Core/Src/Speaker.cpp:17:1:virtual Speaker::~Speaker()	16	static
+../Core/Src/Speaker.cpp:21:6:void Speaker::toggle()	16	static
+../Core/Src/Speaker.cpp:26:6:void Speaker::set_state(bool)	16	static
+../Core/Src/Speaker.cpp:34:6:bool Speaker::is_active()	16	static
+../Core/Src/Speaker.cpp:38:20:TIM_HandleTypeDef* Speaker::get_device()	16	static
