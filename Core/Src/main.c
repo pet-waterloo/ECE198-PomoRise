@@ -224,6 +224,7 @@ int main(void)
 		}
 		if(HOLD_TIME[0] > 3000){
 			MODE = POMO_CHANGE;
+			HOLD_TIME[0] = 0;
 			Lcd_clear(&lcd);
 		}
 
@@ -252,6 +253,9 @@ int main(void)
 			HOLD_TIME[0] = 0;
 			MODE = DEFAULT;
 			RANDOM_COUNTER = 0;
+			Lcd_clear(&lcd);
+			HAL_Delay(100);
+			DELTA_TIME = 0;
 		}
 
 		RANDOM_COUNTER+=TEMP_DELTA_TIME;
@@ -261,6 +265,8 @@ int main(void)
 			HOLD_TIME[1] = 0;
 			MODE = POMO; // exit criteria
 			RANDOM_COUNTER = 0;
+			HAL_Delay(100);
+			Lcd_clear(&lcd);
 		}
 
 		// up
@@ -273,7 +279,7 @@ int main(void)
 			HOLD_TIME[3] = 0;
 			POMO_CLOCK[MIN]--;
 		}
-
+		if(POMO_CLOCK[MIN] < 0) POMO_CLOCK[MIN] = 0;
 
 		// render pomo stuff
 		Lcd_cursor(&lcd, 0, 3);
@@ -308,18 +314,23 @@ int main(void)
 			MODE = DEFAULT;
 			// reset vars
 			RANDOM_COUNTER = 0;
+			Lcd_clear(&lcd);
+			DELTA_TIME = 0;
+			Lcd_clear(&lcd);
+			HAL_Delay(100);
 		}
 
 		RANDOM_COUNTER += TEMP_DELTA_TIME;
 		// if timer sqitch
-		if(HOLD_TIME[0] > 2000){
-			HOLD_TIME[0] = 0;
+		if(HOLD_TIME[1] > 2000){
+			HOLD_TIME[1] = 0;
 			EDITING_HR = !EDITING_HR;
 		}
 
 		// if up button
 		CLOCK[SEC] = 0;
 		if(HOLD_TIME[2] > 500){
+			HOLD_TIME[2] = 0;
 			HOLD_TIME[2] -= 500;
 			// change info
 			if(EDITING_HR){
@@ -329,6 +340,7 @@ int main(void)
 			}
 		}
 		if(HOLD_TIME[3] > 500){
+			HOLD_TIME[3] = 0;
 			HOLD_TIME[3] -= 500;
 			// chnage
 			if(EDITING_HR){
@@ -336,42 +348,84 @@ int main(void)
 			}else{
 				CLOCK[MIN]--;
 			}
+			if(CLOCK[MIN] < 0) CLOCK[MIN] = 0;
 		}
 
 		// update stuff
 		second_update_clock(CLOCK);
+		display_default(&lcd);
 
 		// blink editing blob
-		int edit_block = 9;
-		int index = MIN;
+		int edit_block = 8;
 		if(!EDITING_HR){
-			edit_block = 12;
-			index = HRR;
+			edit_block = 11;
 		}
 		if((RANDOM_COUNTER / 1000) % 2 == 0){
 			Lcd_cursor(&lcd, 0, edit_block);
 			Lcd_string(&lcd, "__");
-		}else{
-			Lcd_cursor(&lcd, 0, edit_block);
-			if(CLOCK[index] < 10) {
-				Lcd_string(&lcd, "0");
-				Lcd_cursor(&lcd, 0, edit_block+1);
-			}
-			Lcd_int(&lcd, CLOCK[index]);
 		}
-	}else if(MODE == POMO){
 
-		pomo_countdown(POMO);
+
+	}else if(MODE == POMO){
+		/*
+		 *  pomo = exit
+		 *  timer = start
+		 *  up = increase moin
+		 *  down = decrease min
+		 *
+		 *
+		 *
+		 *
+		 * POMO MODE
+		 *
+		 *  0123456789
+		 * "   POMO MM:SS   "
+		 *
+		 */
+		RANDOM_COUNTER += TEMP_DELTA_TIME;
+
+		pomo_countdown(POMO_CLOCK, &RANDOM_COUNTER);
 
 		if(POMO_ALARM){
 			MODE = DEFAULT;
 			set_speaker_state(true);
 		}
 
+
+		// display the time
+		Lcd_cursor(&lcd, 0, 3);
+		Lcd_string(&lcd, "POMO");
+		Lcd_cursor(&lcd, 0, 8);
+		// output min
+		if(POMO_CLOCK[MIN] < 10){
+			Lcd_string(&lcd, "0");
+			Lcd_cursor(&lcd, 0, 9);
+		}
+		Lcd_int(&lcd, POMO_CLOCK[MIN]);
+		Lcd_cursor(&lcd, 0, 10);
+		Lcd_string(&lcd, ":");
+		Lcd_cursor(&lcd, 0, 11);
+		if(POMO_CLOCK[SEC] < 10){
+			Lcd_string(&lcd, "0");
+			Lcd_cursor(&lcd, 0, 12);
+		}
+		Lcd_int(&lcd, POMO_CLOCK[SEC]);
+
+		// exit condition
+		if(HOLD_TIME[0] > 3000){
+			POMO_CLOCK[MIN] = DEFAULT_POMO_LENGTH;
+			POMO_CLOCK[SEC] = 0;
+			DELTA_TIME = 0;
+			MODE = DEFAULT;
+			Lcd_clear(&lcd);
+		}
+
+
 	}
 
 	// pomo stuff
 	if(POMO_ALARM) {
+		set_speaker_state(true);
 		POMO_ALARM_LENGTH += TEMP_DELTA_TIME;
 		// length checks
 		if(POMO_ALARM_LENGTH > 3000){
@@ -381,8 +435,9 @@ int main(void)
 		}
 	}
 
-	Lcd_cursor(&lcd, 1, 7);
-	Lcd_int(&lcd, HOLD_TIME[1]);
+//	Lcd_cursor(&lcd, 1, 7);
+////	Lcd_int(&lcd, HOLD_TIME[1]);
+//	Lcd_string(&lcd, (EDITING_HR ? "YES" : "NO"));
 //	Lcd_int(&lcd, TEMP_DELTA_TIME);
 
 

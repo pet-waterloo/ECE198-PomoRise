@@ -28,14 +28,14 @@ bool POMO_ALARM = false;
 int POMO_ALARM_LENGTH = 0;
 
 
-void pomo_countdown(int* timer){
-	if(DELTA_TIME < 1000) return;
+void pomo_countdown(int* timer, int *counter){
+	if(*counter < 1000) return;
 
-	DELTA_TIME -= 1000;
+	*counter -= 1000;
 	timer[SEC] --;
 	if(timer[SEC] < 1){
 		if(timer[MIN] != 0){
-			timer[SEC] = 60;
+			timer[SEC] = 59;
 			timer[MIN] --;
 		}else{
 			// end the timer + everything

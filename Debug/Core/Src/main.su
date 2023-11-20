@@ -19,6 +19,6 @@
 ../Core/Inc/pomo.h:267:5:get_display_pos	16	static
 ../Core/Inc/pomo.h:276:5:get_int_length	24	static
 ../Core/Inc/button.h:31:6:update_buttons	16	static
-../Core/Src/main.c:86:5:main	144	static
-../Core/Src/main.c:406:6:SystemClock_Config	88	static
-../Core/Src/main.c:456:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:86:5:main	136	static
+../Core/Src/main.c:455:6:SystemClock_Config	88	static
+../Core/Src/main.c:505:6:Error_Handler	4	static,ignoring_inline_asm
