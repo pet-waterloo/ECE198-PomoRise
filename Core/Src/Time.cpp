@@ -5,6 +5,7 @@
  *      Author: petthepotat
  */
 
+
 #include <Time.hpp>
 
 Time::Time(int ss, int mm, int hh, int DD, int MM, int YY) :

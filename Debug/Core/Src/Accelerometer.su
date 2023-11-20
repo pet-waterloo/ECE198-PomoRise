@@ -1,0 +1,9 @@
+../Core/Src/Accelerometer.cpp:11:1:Accelerometer::Accelerometer(I2C_HandleTypeDef*)	16	static
+../Core/Src/Accelerometer.cpp:16:1:Accelerometer::~Accelerometer()	24	static
+../Core/Src/Accelerometer.cpp:16:1:virtual Accelerometer::~Accelerometer()	16	static
+../Core/Src/Accelerometer.cpp:22:6:void Accelerometer::init()	40	static
+../Core/Src/Accelerometer.cpp:41:6:void Accelerometer::read()	48	static
+../Core/Src/Accelerometer.cpp:58:8:double Accelerometer::get_x()	16	static
+../Core/Src/Accelerometer.cpp:62:8:double Accelerometer::get_y()	16	static
+../Core/Src/Accelerometer.cpp:66:8:double Accelerometer::get_z()	16	static
+../Core/Src/Accelerometer.cpp:70:6:bool Accelerometer::is_active()	16	static

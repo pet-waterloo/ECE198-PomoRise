@@ -17,9 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <accel.hpp>
-#include <lcdwrap.h>
-#include <Time.hpp>
 #include "main.h"
 #include "i2c.h"
 #include "tim.h"
@@ -28,13 +25,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-
-
-#include <string>
 #include "stdbool.h"
 #include "lcd.h"
 
+#include "Time.hpp"
+#include "Accelerometer.h"
 #include "speaker.h"
+
 
 /* USER CODE END Includes */
 
@@ -139,7 +136,6 @@ int main(void)
 	// Lcd_create(ports, pins, RS_GPIO_Port, RS_Pin, EN_GPIO_Port, EN_Pin, LCD_4_BIT_MODE);
 	lcd = Lcd_create(ports, pins, GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, LCD_4_BIT_MODE);
 	// create lcd wrapper
-	LCD lcdw(&lcd);
 
 	// ----------------------------------- pwm for speaker
 	// turn on pwm
@@ -165,7 +161,9 @@ int main(void)
 
 
 	// ------------------------------------ accelerometer
-	init_accel(&hi2c1);
+//	init_accel(&hi2c1);
+	Accelerometer accel(&hi2c1);
+	accel.init();
 //	uint8_t check, data;
 //	HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, 100);
 //	if(check == 0x68){
@@ -190,44 +188,24 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	// --- time
-
-
-	// --- speaker
-	// TODO - something is going wrong here :(((
-//	update_speaker_limit();
-//	ALARM[MIN] = SPEAKER_ACTIVE_TIMER[SEC];
-//	ALARM[HRR] = (int) SPEAKER_ACTIVE;
-//
 
 	// --- clock
-	clock.update_time();
+	  GLOBAL_CLOCK.update_time();
 
+	 // output date + time
+	  Lcd_cursor(&lcd, 0, 0);
+	  // MON DD
+	  Lcd_string(&lcd, M_STRING[GLOBAL_CLOCK.get_mth()]);
+	  Lcd_cursor(&lcd, 3, 0);
+	  Lcd_int(&lcd, GLOBAL_CLOCK.get_day());
 
-//	display_default(&lcd);
-
-//	  // timer code counter
-//	Lcd_cursor(&lcd, 1,7);
-//	Lcd_int(&lcd, HAL_GetTick());
-//	Lcd_cursor(&lcd, 0, 7);
-//	Lcd_int(&lcd, clock[0]);
 
 
 	// --- accelerometer
-	read_accel(&hi2c1);
-//
-//	if(!ACCEL_ACTIVATED){
-////		Lcd_clear(&lcd);
-//		Lcd_cursor(&lcd, 0, 1);
-//		Lcd_string(&lcd, "cringe cringe");
-//	}else{
-		// output acc values onto lcd
-	Lcd_cursor(&lcd, 0, 1);
-	char buf[16];
-	sprintf(buf, "%d", (int)(AX*100));
-	Lcd_string(&lcd, buf);
-//	}
+	accel.read();
 
+
+//	lcdw._float(accel.get_x(), 2);
 
   }
   /* USER CODE END 3 */

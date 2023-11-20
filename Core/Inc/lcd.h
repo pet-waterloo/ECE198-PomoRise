@@ -83,6 +83,11 @@ typedef struct {
 
 
 /************************************** Public functions **************************************/
+Lcd_HandleTypeDef Lcd_create(
+		Lcd_PortType port[], Lcd_PinType pin[],
+		Lcd_PortType rs_port, Lcd_PinType rs_pin,
+		Lcd_PortType en_port, Lcd_PinType en_pin, Lcd_ModeTypeDef mode);
+
 void Lcd_init(Lcd_HandleTypeDef * lcd);
 void Lcd_int(Lcd_HandleTypeDef * lcd, int number);
 void Lcd_string(Lcd_HandleTypeDef * lcd, char * string);
@@ -93,12 +98,5 @@ Lcd_HandleTypeDef Lcd_create(
 		Lcd_PortType en_port, Lcd_PinType en_pin, Lcd_ModeTypeDef mode);
 void Lcd_define_char(Lcd_HandleTypeDef * lcd, uint8_t code, uint8_t bitmap[]);
 void Lcd_clear(Lcd_HandleTypeDef * lcd);
-
-
-static void lcd_write_data(Lcd_HandleTypeDef * lcd, uint8_t data);
-static void lcd_write_command(Lcd_HandleTypeDef * lcd, uint8_t command);
-static void lcd_write(Lcd_HandleTypeDef * lcd, uint8_t data, uint8_t len);
-
-
 
 #endif /* LCD_H_ */

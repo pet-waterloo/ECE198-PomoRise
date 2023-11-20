@@ -9,6 +9,9 @@
 #define INC_ALARM_H_
 
 #include <Time.hpp>
+#include "main.h"
+
+#define GLOBAL_CLOCK
 
 
 class Alarm {
@@ -21,6 +24,9 @@ private:
 public:
 	Alarm(int min, int hour);
 	virtual ~Alarm();
+
+	bool is_alarmed(Time *global);
+
 };
 
 

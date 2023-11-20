@@ -5,9 +5,10 @@
  *      Author: petthepotat
  */
 
+#pragma once
 #include <Accelerometer.h>
 
-Accelerometer::Accelerometer(I2C_HandleTypeDef* accel) {
+Accelerometer::Accelerometer(I2C_HandleTypeDef* accel) : RAW_AX(0), RAW_AY(0), RAW_AZ(0), AX(0), AY(0), AZ(0), active(false){
 	// TODO Auto-generated constructor stub
 	this->accel = accel;
 }
@@ -42,8 +43,8 @@ void Accelerometer::read(){
 	uint8_t recData[6];
 	for(int i = 0; i < 6; i++) recData[i] = 0;
 
-	HAL_I2C_Mem_Read(hw, MPU6050_ADDR, ACCEL_XOUT_H_REG, I2C_MEMADD_SIZE_8BIT, recData, 6, 100);
-	HAL_Delay(50);
+	HAL_I2C_Mem_Read(this->accel, MPU6050_ADDR, ACCEL_XOUT_H_REG, I2C_MEMADD_SIZE_8BIT, recData, 6, 100);
+	HAL_Delay(10);
 
 	RAW_AX = (int16_t)(recData[0] << 8 | recData[1]);
 	RAW_AY = (int16_t)(recData[2] << 8 | recData[3]);
@@ -55,15 +56,15 @@ void Accelerometer::read(){
 }
 
 double Accelerometer::get_x(){
-
+	return AX;
 }
 
 double Accelerometer::get_y(){
-
+	return AY;
 }
 
 double Accelerometer::get_z(){
-
+	return AZ;
 }
 
 bool Accelerometer::is_active(){

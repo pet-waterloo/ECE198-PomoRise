@@ -39,7 +39,7 @@ uint D_MONTHS[] = {
 		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-const char *M_STRING[] = {
+char *M_STRING[] = {
 	"JAN",
 	"FEB",
 	"MAR",
