@@ -20,6 +20,7 @@ uint C_START_TIME = 0;
 uint CURRENT_TIME = 0;
 uint PREV_TIME = 0;
 uint DELTA_TIME = 0;
+uint TEMP_DELTA_TIME = 0;
 
 
 const uint CLOCK_SIZE = 6;

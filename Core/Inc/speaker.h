@@ -1,31 +1,39 @@
 /*
- * Speaker.h
+ * speaker.h
  *
- *  Created on: Nov 20, 2023
+ *  Created on: Nov 16, 2023
  *      Author: petthepotat
  */
 
 #ifndef INC_SPEAKER_H_
 #define INC_SPEAKER_H_
 
-#include "tim.h"
+#include "stdbool.h"
 
 
-const int HERTZ = 500;
+bool SPEAKER_ACTIVE = false;
+int SPEAKER_HERTZ = 150;
+int SPEAKER_ACTIVE_START_TIME = 0;
 
-class Speaker {
-private:
-	TIM_HandleTypeDef hw;
-	bool active;
 
-public:
-	Speaker(TIM_HandleTypeDef hw);
-	virtual ~Speaker();
+// ---
+void set_speaker_state(bool);
 
-	void toggle();
-	void set_state(bool);
-	bool is_active();
-	TIM_HandleTypeDef *get_device();
-};
+
+void set_speaker_state(bool state){
+	SPEAKER_ACTIVE = state;
+	SPEAKER_ACTIVE_START_TIME = CURRENT_TIME;
+	// check if active
+	if(state){
+		htim2.Instance->CCR1 = SPEAKER_HERTZ;
+	}else{
+		htim2.Instance->CCR1 = 0;
+	}
+}
+
+
+
+
+
 
 #endif /* INC_SPEAKER_H_ */
