@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "tim.h"
 #include "gpio.h"
 
@@ -29,6 +30,9 @@
 #include "pomo.h"
 #include "speaker.h"
 #include "stdbool.h"
+#include "button.h"
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,6 +98,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -105,8 +110,6 @@ int main(void)
 	Lcd_HandleTypeDef lcd;
 	// Lcd_create(ports, pins, RS_GPIO_Port, RS_Pin, EN_GPIO_Port, EN_Pin, LCD_4_BIT_MODE);
 	lcd = Lcd_create(ports, pins, GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, LCD_4_BIT_MODE);
-	Lcd_cursor(&lcd, 0,1);
-	Lcd_string(&lcd, "Peter Zhang");
 
 
 	// ----------------------------------- values
@@ -134,8 +137,7 @@ int main(void)
 
 
 	//TODO - SPEAKER TESTING
-	set_alarm(0, 0, 0);
-	set_speaker_state(true);
+	set_alarm(5, 19, 15);
 
   /* USER CODE END 2 */
 
@@ -150,26 +152,57 @@ int main(void)
 	CURRENT_TIME = HAL_GetTick();
 	DELTA_TIME += CURRENT_TIME - PREV_TIME;
 
-	// if alarm on, countdown from 15s
-	// TODO TESTING --
-//	update_alarm();
+	// update buttons
+	update_buttons();
+	{
+		Lcd_cursor(&lcd, 1, 5);
+		if(BUTTONS[0]) {
+			Lcd_string(&lcd, "_");
+		}else{
+			Lcd_string(&lcd, " ");
+		}
+		Lcd_cursor(&lcd, 1, 6);
+		if(BUTTONS[1]){
+			Lcd_string(&lcd, "_");
+		}else{
+			Lcd_string(&lcd, " ");
+		}
+		Lcd_cursor(&lcd, 1, 9);
+		if(BUTTONS[2]){
+			Lcd_string(&lcd, "_");
+		}else{
+			Lcd_string(&lcd, " ");
+		}
+		Lcd_cursor(&lcd, 1, 10);
+		if(BUTTONS[3]){
+			Lcd_string(&lcd, "_");
+		}else{
+			Lcd_string(&lcd, " ");
+		}
+	}
 
-//	update_speaker_limit();
-
-	// TODO - something is going wrong here :(((
-	update_speaker_limit();
-	ALARM[MIN] = SPEAKER_ACTIVE_TIMER[SEC];
-	ALARM[HRR] = (int) SPEAKER_ACTIVE;
-
-
+	// clock update
 	second_update_clock(CLOCK);
-	display_default(&lcd);
 
-//	  // timer code counter
-//	Lcd_cursor(&lcd, 1,7);
-//	Lcd_int(&lcd, HAL_GetTick());
-//	Lcd_cursor(&lcd, 0, 7);
-//	Lcd_int(&lcd, clock[0]);
+	// alarm update
+	{
+		set_speaker_state(false);
+		if(ALARM[HRR] == CLOCK[HRR] && ALARM[MIN] == CLOCK[MIN]){
+			if(CLOCK[SEC] - ALARM[SEC] < 15){
+				// 15s interval satisfied
+				set_speaker_state(true);
+			}
+		}
+	}
+
+	// display information
+	display_default(&lcd);
+	// check if alarm mis active
+	Lcd_cursor(&lcd, 1, 7);
+	Lcd_string(&lcd, (SPEAKER_ACTIVE ? "ON" : "DN"));
+
+	// timer checks - 15s activity section
+
 
 
   }
@@ -212,11 +245,11 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV4;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV16;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }

@@ -12,7 +12,7 @@
 
 
 bool SPEAKER_ACTIVE = false;
-int SPEAKER_HERTZ = 500;
+int SPEAKER_HERTZ = 150;
 int SPEAKER_ACTIVE_START_TIME = 0;
 
 

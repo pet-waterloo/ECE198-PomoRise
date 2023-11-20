@@ -24,7 +24,6 @@ int POMO_TIMER[] = {0, 0, 0, 0, 0, 0};
 bool IS_POMO = false;
 
 
-
 // ---
 void set_alarm_arr(int*);
 void set_alarm(int, int, int);
