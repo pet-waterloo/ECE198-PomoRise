@@ -67,6 +67,16 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+
+int DEFAULT = 0;
+int POMO = 1;
+int TIME_CHANGE = 2;
+int POMO_CHANGE = 3;
+
+bool EDITING_HR = true;
+int RANDOM_COUNTER = 0;
+
+
 /* USER CODE END 0 */
 
 /**
@@ -139,6 +149,10 @@ int main(void)
 	//TODO - SPEAKER TESTING
 	set_alarm(5, 19, 15);
 
+	int MODE = DEFAULT;
+
+	HAL_Delay(1000);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -151,38 +165,16 @@ int main(void)
 	PREV_TIME = CURRENT_TIME;
 	CURRENT_TIME = HAL_GetTick();
 	DELTA_TIME += CURRENT_TIME - PREV_TIME;
+	TEMP_DELTA_TIME = CURRENT_TIME - PREV_TIME;
+
+	HAL_Delay(5);
 
 	// update buttons
 	update_buttons();
-	{
-		Lcd_cursor(&lcd, 1, 5);
-		if(BUTTONS[0]) {
-			Lcd_string(&lcd, "_");
-		}else{
-			Lcd_string(&lcd, " ");
-		}
-		Lcd_cursor(&lcd, 1, 6);
-		if(BUTTONS[1]){
-			Lcd_string(&lcd, "_");
-		}else{
-			Lcd_string(&lcd, " ");
-		}
-		Lcd_cursor(&lcd, 1, 9);
-		if(BUTTONS[2]){
-			Lcd_string(&lcd, "_");
-		}else{
-			Lcd_string(&lcd, " ");
-		}
-		Lcd_cursor(&lcd, 1, 10);
-		if(BUTTONS[3]){
-			Lcd_string(&lcd, "_");
-		}else{
-			Lcd_string(&lcd, " ");
-		}
-	}
 
 	// clock update
 	second_update_clock(CLOCK);
+
 
 	// alarm update
 	{
@@ -195,13 +187,205 @@ int main(void)
 		}
 	}
 
-	// display information
-	display_default(&lcd);
-	// check if alarm mis active
-	Lcd_cursor(&lcd, 1, 7);
-	Lcd_string(&lcd, (SPEAKER_ACTIVE ? "ON" : "DN"));
 
-	// timer checks - 15s activity section
+	// mode specific updates
+	if(MODE == DEFAULT){
+
+		// user input stuff now
+		/*
+		 *  pomo button = set to pomo mode
+		 *  	- pomo to exit
+		 *  	- timer to start
+		 *  	- up to increase min
+		 *  	- down to decrease min
+		 *  timer button = change time
+		 *  	- pomo exit
+		 *  	- timer = change hr / min
+		 *  	- up = increase
+		 *  	- down = decrease
+		 *
+		 *
+		 *  // could add 2 more features but too lazy
+		 *
+		 *  up button = (if in special mode = go up by 1)
+		 *  down button = (if in special mode = go down by 1)
+		 *
+		 */
+
+		// display information
+		display_default(&lcd);
+		// check if alarm mis active
+		Lcd_cursor(&lcd, 1, 7);
+		Lcd_string(&lcd, (SPEAKER_ACTIVE ? "ON" : "DN"));
+
+		if(HOLD_TIME[1] > 3000){
+			MODE = TIME_CHANGE;
+			Lcd_clear(&lcd);
+		}
+		if(HOLD_TIME[0] > 3000){
+			MODE = POMO_CHANGE;
+			Lcd_clear(&lcd);
+		}
+
+
+
+
+	}else if(MODE == POMO_CHANGE){
+		/*
+		 *  pomo = exit
+		 *  timer = start
+		 *  up = increase moin
+		 *  down = decrease min
+		 *
+		 *
+		 *
+		 *
+		 * POMO MODE
+		 *
+		 *  0123456789
+		 * "   POMO MM:SS   "
+		 *
+		 */
+
+		// exit
+		if(HOLD_TIME[0] > 2000){
+			HOLD_TIME[0] = 0;
+			MODE = DEFAULT;
+			RANDOM_COUNTER = 0;
+		}
+
+		RANDOM_COUNTER+=TEMP_DELTA_TIME;
+
+		// start the pomo
+		if(HOLD_TIME[1] > 1000){
+			HOLD_TIME[1] = 0;
+			MODE = POMO; // exit criteria
+			RANDOM_COUNTER = 0;
+		}
+
+		// up
+		if(HOLD_TIME[2] > 500){
+			HOLD_TIME[2] = 0;
+			POMO_CLOCK[MIN]++;
+		}
+		// down
+		if(HOLD_TIME[3] > 500){
+			HOLD_TIME[3] = 0;
+			POMO_CLOCK[MIN]--;
+		}
+
+
+		// render pomo stuff
+		Lcd_cursor(&lcd, 0, 3);
+		Lcd_string(&lcd, "POMO");
+
+		if((RANDOM_COUNTER / 1000) % 2 == 0){
+			Lcd_cursor(&lcd, 0, 8);
+			Lcd_string(&lcd, "__");
+		}else{
+			Lcd_cursor(&lcd, 0, 8);
+			if(POMO_CLOCK[MIN] < 10) {
+				Lcd_string(&lcd, "0");
+				Lcd_cursor(&lcd, 0, 9);
+			}
+			Lcd_int(&lcd, POMO_CLOCK[MIN]);
+		}
+		Lcd_cursor(&lcd, 0, 10);
+		Lcd_string(&lcd, ":00");
+
+	}else if(MODE == TIME_CHANGE){
+		/*
+		 * pomo = exit
+		 * timer = change hr/min
+		 * up = inc
+		 * down = dec
+		 *
+		 */
+
+		// exit
+		if(HOLD_TIME[0] > 2000){
+			HOLD_TIME[0] = 0;
+			MODE = DEFAULT;
+			// reset vars
+			RANDOM_COUNTER = 0;
+		}
+
+		RANDOM_COUNTER += TEMP_DELTA_TIME;
+		// if timer sqitch
+		if(HOLD_TIME[0] > 2000){
+			HOLD_TIME[0] = 0;
+			EDITING_HR = !EDITING_HR;
+		}
+
+		// if up button
+		CLOCK[SEC] = 0;
+		if(HOLD_TIME[2] > 500){
+			HOLD_TIME[2] -= 500;
+			// change info
+			if(EDITING_HR){
+				CLOCK[HRR]++;
+			}else{
+				CLOCK[MIN]++;
+			}
+		}
+		if(HOLD_TIME[3] > 500){
+			HOLD_TIME[3] -= 500;
+			// chnage
+			if(EDITING_HR){
+				CLOCK[HRR]--;
+			}else{
+				CLOCK[MIN]--;
+			}
+		}
+
+		// update stuff
+		second_update_clock(CLOCK);
+
+		// blink editing blob
+		int edit_block = 9;
+		int index = MIN;
+		if(!EDITING_HR){
+			edit_block = 12;
+			index = HRR;
+		}
+		if((RANDOM_COUNTER / 1000) % 2 == 0){
+			Lcd_cursor(&lcd, 0, edit_block);
+			Lcd_string(&lcd, "__");
+		}else{
+			Lcd_cursor(&lcd, 0, edit_block);
+			if(CLOCK[index] < 10) {
+				Lcd_string(&lcd, "0");
+				Lcd_cursor(&lcd, 0, edit_block+1);
+			}
+			Lcd_int(&lcd, CLOCK[index]);
+		}
+	}else if(MODE == POMO){
+
+		pomo_countdown(POMO);
+
+		if(POMO_ALARM){
+			MODE = DEFAULT;
+			set_speaker_state(true);
+		}
+
+	}
+
+	// pomo stuff
+	if(POMO_ALARM) {
+		POMO_ALARM_LENGTH += TEMP_DELTA_TIME;
+		// length checks
+		if(POMO_ALARM_LENGTH > 3000){
+			POMO_ALARM = false;
+			POMO_ALARM_LENGTH = 0;
+			set_speaker_state(false);
+		}
+	}
+
+	Lcd_cursor(&lcd, 1, 7);
+	Lcd_int(&lcd, HOLD_TIME[1]);
+//	Lcd_int(&lcd, TEMP_DELTA_TIME);
+
+
 
 
 

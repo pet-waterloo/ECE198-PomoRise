@@ -9,46 +9,37 @@
 #define INC_BUTTON_H_
 
 #include "gpio.h"
+#include "const.h"
 
 
 bool BUTTONS[4] = {0, 0, 0, 0};
+int HOLD_TIME[4] = {0, 0, 0, 0};
+
+GPIO_TypeDef* B_mID[4] = {GPIOA, GPIOB, GPIOB, GPIOA};
+
+uint16_t B_nID[4] = {GPIO_PIN_10, GPIO_PIN_3, GPIO_PIN_10, GPIO_PIN_8};
+
 
 /*
- *  B1 = PA10
- *  B2 = PB3
- *  B3 = PB10
- *  B4 = PA8
+ *  B1 = PA10 		 = pomo
+ *  B2 = PB3 		 = timer (change)
+ *  B3 = PB10		 = up
+ *  B4 = PA8		 = down
  */
 
 
 void update_buttons(){
-	// button 1
-	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == GPIO_PIN_RESET){
-		BUTTONS[0] = false;
-	}else{
-		BUTTONS[0] = true;
-	}
-	// button 2
-	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3) == GPIO_PIN_RESET){
-		BUTTONS[1] = false;
-	}else{
-		BUTTONS[1] = true;
-	}
-	// button 3
-	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_RESET){
-		BUTTONS[2] = false;
-	}else{
-		BUTTONS[2] = true;
-	}
-	// button 4
-	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8) == GPIO_PIN_RESET){
-		BUTTONS[3] = false;
-	}else{
-		BUTTONS[3] = true;
+	// update all buttons
+	for(int i = 0; i < 4; i++){
+		if(HAL_GPIO_ReadPin(B_mID[i], B_nID[i]) == GPIO_PIN_RESET){
+			HOLD_TIME[i] = 0;
+			BUTTONS[i] = false;
+		}else{
+			HOLD_TIME[i] += TEMP_DELTA_TIME;
+			BUTTONS[i] = true;
+		}
 	}
 }
-
-
 
 
 

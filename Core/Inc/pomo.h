@@ -18,6 +18,32 @@
 #include "stdbool.h"
 #include "timer.h"
 
+
+
+
+int DEFAULT_POMO_LENGTH = 20;
+int POMO_CLOCK[6] = {0, 20, 0, 0 ,0, 0};
+bool POMO_ALARM = false;
+
+int POMO_ALARM_LENGTH = 0;
+
+
+void pomo_countdown(int* timer){
+	if(DELTA_TIME < 1000) return;
+
+	DELTA_TIME -= 1000;
+	timer[SEC] --;
+	if(timer[SEC] < 1){
+		if(timer[MIN] != 0){
+			timer[SEC] = 60;
+			timer[MIN] --;
+		}else{
+			// end the timer + everything
+			POMO_ALARM = true;
+		}
+	}
+}
+
 // -----
 void set_clock_time_arr(int*);
 void set_clock_time(int, int, int, int, int, int);
@@ -120,6 +146,12 @@ void display_info_i(Lcd_HandleTypeDef* lcd, uint align1, int data1, uint align2,
 	// end
 }
 
+
+
+
+bool DISPLAY_24H_TIME = true;
+
+
 void display_default(Lcd_HandleTypeDef* lcd){
 	// display everything + map
 
@@ -145,9 +177,10 @@ void display_default(Lcd_HandleTypeDef* lcd){
 	// find align right position
 	int aleft = get_display_pos(A_RIGHT, 7);
 
+
 	// output hours
 	Lcd_cursor(lcd, 0, aleft);
-	Lcd_int(lcd, CLOCK[HRR]);
+	Lcd_int(lcd, (DISPLAY_24H_TIME ? CLOCK[HRR] : (CLOCK[HRR] % 12 == 0 ? 12 : CLOCK[HRR] % 12)));
 	// output center thing
 	Lcd_cursor(lcd, 0, aleft + 2);
 	Lcd_string(lcd, ":");
